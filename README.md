@@ -2,6 +2,9 @@
 
 A real-time hand landmark detection application using MediaPipe and OpenCV that inverts the video feed between detected hand landmarks (thumb and index finger tips).
 
+![My Capture](capture.png)
+
+
 ## Features
 
 - Real-time hand detection using MediaPipe's Hand Landmarker

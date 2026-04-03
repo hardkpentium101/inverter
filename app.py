@@ -16,6 +16,10 @@ cap = cv2.VideoCapture(0)
 
 pTime=0
 cTime=0
+capture_started = False
+start_time = 0
+DIST_THRESHOLD = 40   # adjust based on your camera scale
+
 
 while True:
     # 1. Load an image using OpenCV
@@ -28,6 +32,11 @@ while True:
     # 3. Perform detection
     detection_result = detector.detect(mp_image)
     
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    color = cv2.applyColorMap(gray, cv2.COLORMAP_TURBO)
+    img = cv2.addWeighted(img, 0.6, color, 0.4, 0)
+
+
     h, w, _ = img.shape
     # 4. Access the results
     if detection_result.hand_landmarks:
@@ -38,12 +47,21 @@ while True:
             for id, lm in enumerate(landmarks):
                 if id in (4,8) and len(landmarks) == 21:
                     cx, cy = int(lm.x * w), int(lm.y * h)
-
-                    cv2.circle(img, (cx, cy), 1, (255,255,255) , cv2.FILLED)
-
+                    # === HUD TARGET (BLUE) ===
+                    cv2.circle(img, (cx, cy), 10, (255,0,0), 1)
+                    cv2.circle(img, (cx, cy), 20, (255,0,0), 1)
+                    cv2.line(img, (cx-10, cy), (cx+10, cy), (255,0,0), 1)
+                    cv2.line(img, (cx, cy-10), (cx, cy+10), (255,0,0), 1)
+                    # glow effect
+                    for r in range(10, 25, 5):
+                        cv2.circle(img, (cx, cy), r, (255,0,0), 1)
                     coords.append([cx,cy])
 
-        
+
+        import math
+
+
+
         if len(coords) == 4:
             ymin = min(coords, key=lambda x: x[1])[1]
 
@@ -68,12 +86,39 @@ while True:
                         img[ymin: y+1, x:x+1] = cv2.bitwise_not(roi)
 
     
+        if len(coords) >= 2:
+            x1, y1 = coords[0]
+            x2, y2 = coords[1]
+
+            dist = math.hypot(x2 - x1, y2 - y1)
+
+            cv2.line(img, (x1, y1), (x2, y2), (255,255,255), 1)
+
+            # === START TIMER ONLY ONCE ===
+            if not capture_started:
+                if dist < DIST_THRESHOLD:
+                    capture_started = True
+                    start_time = time.time()
+
+            # === ONCE STARTED → IGNORE COORD CHANGES ===
+            if capture_started:
+                elapsed = time.time() - start_time
+                remaining = max(0, 5 - int(elapsed))
+
+                cv2.putText(img, f"Capturing in {remaining}",
+                            (50, 100), cv2.FONT_HERSHEY_SIMPLEX,
+                            1, (255,255,255), 2)
+
+                if elapsed >= 5:
+                    cv2.imwrite(f"capture_{int(time.time())}.png", img)
+                    print("Captured!")
+
+                    capture_started = False  # reset AFTER capture
+
     # img = cv2.bitwise_not(img)
     cTime = time.time()
     fps = 1/(cTime-pTime)
     pTime = cTime
-
-    cv2.putText(img,"",(10,70),cv2.FONT_HERSHEY_PLAIN,3,(255,0,255),3)
 
     cv2.imshow("Image", img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
