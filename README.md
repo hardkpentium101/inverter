@@ -1,16 +1,45 @@
-# Hand Landmark Inverter
+# Hand Gesture Capture
 
-A real-time hand landmark detection application using MediaPipe and OpenCV that inverts the video feed between detected hand landmarks (thumb and index finger tips).
+Real-time hand landmark detection and gesture-based capture using MediaPipe and OpenCV. Two apps: a lightweight inverter and a full-featured gesture interface with 3D shapes, face tracking, and Sharingan eye effects.
 
-![My Capture](capture.png)
+![Cap 0](cap_0.png)
 
+![Cap 1](cap_1.png)
 
-## Features
+![Cap 2](cap_2.png)
 
-- Real-time hand detection using MediaPipe's Hand Landmarker
-- Tracks thumb (landmark 4) and index finger (landmark 8) tips for both hands
-- Inverts the video region between detected hand points
-- Displays live camera feed with overlay
+## Apps
+
+### `cap0` — Hand Landmark Inverter (`app.py`)
+
+```bash
+python app.py
+```
+
+- Tracks thumb (4) and index (8) tips for both hands
+- Draws blue HUD targets on fingertips
+- Inverts pixels inside the polygon formed by the 4 landmarks
+- White line connects both index fingertips
+- **Capture**: Touch both ring fingertips (16) and hold for 5s
+- **Quit**: Press `q`
+
+### `cap1` / `cap2` — Hand Gesture Interface (`hand_gesture_app.py`)
+
+```bash
+python hand_gesture_app.py
+```
+
+- Face tracking with Sharingan eye effect (right eye only)
+- 3D shape projection (Cube → Octahedron → Sphere) centered on screen
+- Explode/implode particle system
+- Light blue connection lines between corresponding fingertips
+- **Activate Sharingan**: Touch both index fingertips and hold for 2s
+- **Morph shape**: Make a fist with either hand, then release
+- **Explode**: Clench both fists, then pull them apart quickly
+- **Implode**: Open both hands while exploded
+- **Rotate shape**: One fist + one open hand (fist hand = yaw, open hand Y = tilt)
+- **Capture**: Touch both ring fingertips (16) and hold for 5s
+- **Quit**: Press `q`
 
 ## Requirements
 
@@ -19,56 +48,43 @@ A real-time hand landmark detection application using MediaPipe and OpenCV that 
 
 ## Installation
 
-1. Create and activate a virtual environment (optional but recommended):
-
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Linux/macOS
-```
-
-2. Install dependencies:
-
-```bash
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-3. Download the MediaPipe hand landmarker model:
+Download the MediaPipe models:
 
 ```bash
 wget -q https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
+wget -q https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
 ```
-
-## Usage
-
-Run the application:
-
-```bash
-python app.py
-```
-
-A window will open showing your camera feed. The app tracks your hand landmarks and inverts the region between your thumb and index finger tips. Press `q` to quit.
 
 ## Project Structure
 
 ```
 .
-├── app.py                    # Main application
-├── hand_landmarker.task      # MediaPipe hand landmarker model
-├── requirements.txt          # Python dependencies
-└── README.md                 # This file
+├── app.py                    # cap1 — Hand Landmark Inverter
+├── hand_gesture_app.py       # cap2 — Full Gesture Interface
+├── hand_landmarker.task      # MediaPipe hand model
+├── face_landmarker.task      # MediaPipe face model
+├── requirements.txt
+└── README.md
 ```
 
 ## Dependencies
 
-- **opencv-python**: Computer vision operations and camera capture
-- **mediapipe**: Hand landmark detection
-- **pprintpp**: Enhanced pretty-printing (utility)
+| Package | Purpose |
+|---|---|
+| opencv-python | Camera capture, image processing, drawing |
+| mediapipe | Hand and face landmark detection |
+| numpy | Array operations, particle physics |
 
-## How It Works
+## Visual Effects
 
-1. Captures video from the default webcam
-2. Converts frames to RGB for MediaPipe processing
-3. Detects hand landmarks (up to 2 hands)
-4. Extracts thumb and index finger tip coordinates
-5. Draws lines between landmarks and inverts the pixel values in the enclosed region
-6. Displays the processed feed in real-time
+- **TURBO colormap**: Thermal-style background overlay on both apps
+- **Sharingan eye**: Red glow with spinning tomoe (cap2)
+- **3D shapes**: Perspective-projected geometry with layered glow (cap2)
+- **Particles**: Explode/implode physics with shape-colored trails (cap2)
+- **Pixel inversion**: Negative effect inside hand polygon (cap1)
